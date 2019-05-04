@@ -41,18 +41,13 @@
   width: 700px; 
   background: lightslategray;
   color: white; 
-  font-size: calc(10px + 1vmin);
+  font-size: calc(5px + 1vmin);
 }
 
 #preview p {
   margin: 0px; 
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+img[alt=macbook] {
+  width: 400px; 
 }
