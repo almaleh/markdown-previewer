@@ -1,12 +1,29 @@
 import React from 'react';
+import { connect, Provider } from 'react-redux';
+import { createStore } from 'redux';
 import './App.css';
-import { Provider, connect } from 'react-redux'
-import { createStore, combineReducers } from 'redux'
+
+// Markdown Renderer
+
+const marked = window.marked; 
+
+marked.setOptions({
+  breaks: true
+});
+const renderer = new marked.Renderer(); 
+renderer.link = function(href, title, text) {
+  return '<a target="_blank" href="${href}">${text}' + '</a>';
+}
+
 
 // Redux
 const EDIT = 'EDIT';
+const defaultMarkdown = `# Welcome to my React Markdown Previewer!
 
-const markdownReducer = (state = 'No markdown', action) => {
+## This is a sub-heading...
+`
+
+const markdownReducer = (state = defaultMarkdown, action) => {
   switch (action.type) {
     case EDIT:
       return action.newMarkdown;
@@ -32,8 +49,8 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    editMarkdown: () => {
-      dispatch(editMarkdown);
+    editMarkdown: (newMarkdown) => {
+      dispatch(editMarkdown(newMarkdown));
     }
   }
 }
@@ -44,10 +61,19 @@ const mapDispatchToProps = (dispatch) => {
 class Previewer extends React.Component {
   constructor(props){
     super(props); 
+    this.processMarkdown = this.processMarkdown.bind(this); 
   }
+
+  processMarkdown() {
+    return marked(this.props.markdown, { renderer: renderer})
+  }
+
   render(){
     return(
-      <p>This is the Previewer. Markdown rendered: {this.props.markdown}</p>
+      <>
+      <h3>Previewer</h3>
+      <section id="preview" dangerouslySetInnerHTML={{__html: this.processMarkdown()}} />
+      </>
     )
   }
 }
@@ -55,14 +81,19 @@ class Previewer extends React.Component {
 class Editor extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      markdown: props.markdown
-    }
+    this.handleTextChange = this.handleTextChange.bind(this); 
+  }
+
+  handleTextChange(event) {
+    this.props.editMarkdown(event.target.value)
   }
 
   render() {
     return (
-      <p>This is the editor. Markdown status: {this.state.markdown}</p>
+      <>
+      <h2>Editor</h2>
+      <textarea id="editor" defaultValue={this.props.markdown} onChange={this.handleTextChange}></textarea>
+      </>
     )
   }
 }
@@ -74,10 +105,10 @@ class Wrapper extends React.Component {
 
   render() {
     let markdown = this.props.markdown; 
+    let editMarkdown = this.props.editMarkdown; 
     return (
       <header className="App-header">
-        A test, for the ages. 
-        <Editor markdown={markdown}/>
+        <Editor markdown={markdown} editMarkdown={editMarkdown}/>
         <br/>
         <Previewer markdown={markdown}/>
       </header> 
@@ -94,5 +125,6 @@ function App() {
 }
 
 const Container = connect(mapStateToProps, mapDispatchToProps)(Wrapper);
+
 
 export default App;
